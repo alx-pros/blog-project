@@ -11,8 +11,10 @@
 import type * as auth from "../auth.js";
 import type * as comment from "../comment.js";
 import type * as http from "../http.js";
+import type * as passwordReset from "../passwordReset.js";
 import type * as posts from "../posts.js";
 import type * as presence from "../presence.js";
+import type * as rateLimiting from "../rateLimiting.js";
 
 import type {
   ApiFromModules,
@@ -24,8 +26,10 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   comment: typeof comment;
   http: typeof http;
+  passwordReset: typeof passwordReset;
   posts: typeof posts;
   presence: typeof presence;
+  rateLimiting: typeof rateLimiting;
 }>;
 
 /**

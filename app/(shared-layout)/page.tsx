@@ -1,128 +1,119 @@
-import { Button, buttonVariants } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { BookOpen, HomeIcon, PenTool } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
+import { Suspense } from "react";
+import { AuroraText } from "@/components/ui/aurora-text";
+import Footer from "@/components/web/Footer";
+import { api } from "@/convex/_generated/api";
+import { fetchQuery } from "convex/nextjs";
+import { cacheLife, cacheTag } from "next/cache";
+import { SignatureIcon } from "@/public/SignatureIcon";
+import Newsletter from "@/components/web/Newsletter";
+import { ArrowRight } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="flex flex-col ">
+    <div className="flex flex-col pt-20 max-w-3xl mx-auto px-4">
       {/* Hero Section */}
-      <section className="flex-1 flex flex-col items-center justify-center py-16 px-4 text-center ">
-        <div className="space-y-6 max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <h1 className="text-4xl font-extrabold tracking-tight lg:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
-            Welcome to My Blog
+      <section className="flex-1 flex flex-col items-start justify-center text-center gap-5 py-5">
+        <div className="space-y-6 mx-auto text-left">
+          <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">
+            <AuroraText>The Web Room</AuroraText>
           </h1>
-          <p className="text-xl text-muted-foreground leading-relaxed">
-            A simple Next.js 16 tutorial project exploring the new features and
-            best practices. Built with Convex, Tailwind CSS, and love.
+          <p className="md:text-xl text-paragraph leading-relaxed">
+            "Welcome to our blog! Here, our community share everything related to web development,
+            including tutorials, tips, and insights. Join hundreds of developers and stay up-to-date
+            with the latest trends and best practices."
           </p>
-          <div className="flex items-center justify-center gap-4 pt-4">
-            <Button asChild size="lg" className="rounded-full px-8">
-              <Link href="/blog">Start Reading</Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="rounded-full px-8"
-            >
-              <Link href="/create">Write a Post</Link>
-            </Button>
+        </div>
+
+        <SignatureIcon className="text-black dark:text-white" />
+      </section>
+      {/* Latest Posts on Home */}
+      <section className="py-10 border-b border-t">
+        <div className="mx-auto space-y-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="text-left">
+              <h6 className="text-sm font-medium text-primary uppercase tracking-[0.18em]">
+                Trending Posts
+              </h6>
+            </div>
           </div>
+
+          <Suspense
+            fallback={
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="flex flex-col space-y-3 rounded-xl border bg-card/40 p-4">
+                    <Skeleton className="h-40 w-full rounded-lg" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-5 w-3/4" />
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-2/3" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            }
+          >
+            <LoadHomePostList />
+          </Suspense>
         </div>
       </section>
+      <Newsletter />
 
-      {/* Features Section */}
-      <section className="py-6 px-4">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 w-full max-w-6xl mx-auto">
-          <Card className="flex flex-col border-none shadow-md hover:shadow-lg transition-shadow duration-300">
-            <CardHeader>
-              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 text-primary">
-                <HomeIcon className="w-6 h-6" />
-              </div>
-              <CardTitle>Home</CardTitle>
-              <CardDescription>Return to the landing page</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1">
-              <p className="text-sm text-muted-foreground">
-                You are currently on the home page. This is the entry point of
-                our application.
-              </p>
-            </CardContent>
-            <CardFooter>
-              <Link
-                href="/"
-                className={buttonVariants({
-                  variant: "outline",
-                  className: "w-full",
-                })}
-              >
-                Go Home
-              </Link>
-            </CardFooter>
-          </Card>
+      <div className="flex flex-col w-full h-full items-start justify-center py-4 gap-5">
+        <h2 className="text-sm uppercase font-medium tracking-[0.18em] text-left text-primary">
+          Beyond the Blog
+        </h2>
+        <p className="text-left md:text-xl leading-normal text-paragraph">
+          Check out each and every one of us. We're a team of passionate web developers who are
+          dedicated to sharing knowledge and insights with you.
+        </p>
+      </div>
 
-          <Card className="flex flex-col border-none shadow-md hover:shadow-lg transition-shadow duration-300">
-            <CardHeader>
-              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 text-primary">
-                <BookOpen className="w-6 h-6" />
-              </div>
-              <CardTitle>Blog</CardTitle>
-              <CardDescription>Read our latest articles</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1">
-              <p className="text-sm text-muted-foreground">
-                Browse through a collection of interesting posts and tutorials.
-              </p>
-            </CardContent>
-            <CardFooter>
-              <Link
-                href="/blog"
-                className={buttonVariants({
-                  variant: "outline",
-                  className: "w-full",
-                })}
-              >
-                Visit Blog
-              </Link>
-            </CardFooter>
-          </Card>
+      <Suspense fallback={<div>Loading...</div>}>
+        <Footer />
+      </Suspense>
+    </div>
+  );
+}
 
-          <Card className="flex flex-col border-none shadow-md hover:shadow-lg transition-shadow duration-300">
-            <CardHeader>
-              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 text-primary">
-                <PenTool className="w-6 h-6" />
+export async function LoadHomePostList() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("blog");
+
+  const data = await fetchQuery(api.posts.getPublishedPosts);
+  const limitedPosts = data?.slice(0, 3) || [];
+
+  return (
+    <div className="grid gap-6 grid-rows-3">
+      {limitedPosts.map((post) => (
+        <Link key={post._id} href={`/posts/${post._id}`} className="group block">
+          <div className="relative flex flex-row items-center border-b border-dashed py-4 gap-10">
+            <div
+              className="hidden absolute left-2 top-8 md:flex items-center justify-center opacity-0 
+              -translate-x-10 transition-all duration-200 ease-out
+              group-hover:opacity-100 group-hover:translate-x-0"
+            >
+              <ArrowRight className="h-5 w-5 text-black dark:text-white" />
+            </div>
+
+            {/* Content */}
+            <div
+              className="flex w-full flex-row items-start justify-between
+              transition-transform duration-300 ease-out
+              md:group-hover:translate-x-10"
+            >
+              <div className="flex flex-col">
+                <h1 className="text-xl font-bold">{post.title}</h1>
+                <p className="text-paragraph line-clamp-2">{post.body}</p>
               </div>
-              <CardTitle>Create Post</CardTitle>
-              <CardDescription>Share your thoughts</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1">
-              <p className="text-sm text-muted-foreground">
-                Have something to say? Create a new blog post and share it with
-                the community.
-              </p>
-            </CardContent>
-            <CardFooter>
-              <Link
-                href="/create"
-                className={buttonVariants({
-                  variant: "outline",
-                  className: "w-full",
-                })}
-              >
-                Create Post
-              </Link>
-            </CardFooter>
-          </Card>
-        </div>
-      </section>
+            </div>
+            <p className="text-sm text-paragraph whitespace-nowrap">{post._creationTime}</p>
+          </div>
+        </Link>
+      ))}
     </div>
   );
 }

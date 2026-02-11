@@ -60,7 +60,7 @@ export const disconnect = mutation({
 export const getUserId = query({
   args: {},
   handler: async (ctx) => {
-    const user = await authComponent.getAuthUser(ctx);
-    return user?._id;
+    const user = await authComponent.safeGetAuthUser(ctx);
+    return user?._id || null;
   },
 });

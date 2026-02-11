@@ -7,6 +7,9 @@ export default defineSchema({
     body: v.string(),
     authorId: v.string(),
     imageStorageId: v.optional(v.id("_storage")),
+    status: v.optional(v.union(v.literal("published"), v.literal("hidden"), v.literal("flagged"))),
+    contentHtml: v.optional(v.string()),
+    topic: v.union(v.literal("Web Development"), v.literal("Design & UI"), v.literal("AI"), v.literal("Engineering")),
   }).searchIndex("search_title", {
     searchField: "title",
   }).searchIndex("search_body", {
@@ -18,5 +21,23 @@ export default defineSchema({
     authorId: v.string(),
     authorName: v.string(),
     body: v.string(),
+    status: v.optional(v.union(v.literal("visible"), v.literal("hidden"))),
   }),
+
+  rateLimits: defineTable({
+    userId: v.string(),
+    lastPostTime: v.optional(v.number()),
+    lastCommentTime: v.optional(v.number()),
+    dailyPostCount: v.optional(v.number()),
+    dailyCommentCount: v.optional(v.number()),
+  })
+    .index("by_userId", ["userId"]),
+
+  passwordResetOtps: defineTable({
+    email: v.string(),
+    otp: v.string(),
+    expiresAt: v.number(),
+    attempts: v.number(),
+  })
+    .index("by_email", ["email"]),
 });

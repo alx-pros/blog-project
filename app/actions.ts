@@ -13,46 +13,54 @@ export async function createBlogAction(values: z.infer<typeof postSchema>) {
     const parsed = postSchema.safeParse(values);
 
     if (!parsed.success) {
-      throw new Error("something went wrong");
+      throw new Error("Validation failed");
     }
 
     const token = await getToken();
-    const imageUrl = await fetchMutation(
-      api.posts.generateImageUploadUrl,
-      {},
-      { token }
-    );
+    
+    let storageId = undefined;
+    
+    // Upload image only if provided
+    if (parsed.data.image) {
+      const imageUrl = await fetchMutation(
+        api.posts.generateImageUploadUrl,
+        {},
+        { token }
+      );
 
-    const uploadResult = await fetch(imageUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": parsed.data.image.type,
-      },
-      body: parsed.data.image,
-    });
+      const uploadResult = await fetch(imageUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": parsed.data.image.type,
+        },
+        body: parsed.data.image,
+      });
 
-    if (!uploadResult.ok) {
-      return {
-        error: "Failed to upload image",
-      };
+      if (!uploadResult.ok) {
+        throw new Error("Failed to upload image");
+      }
+
+      const result = await uploadResult.json();
+      storageId = result.storageId;
     }
 
-    const { storageId } = await uploadResult.json();
     await fetchMutation(
       api.posts.createPost,
       {
         body: parsed.data.content,
         title: parsed.data.title,
+        contentHtml: parsed.data.contentHtml,
+        topic: parsed.data.topic,
         imageStorageId: storageId,
       },
       { token }
     );
-  } catch {
-    return {
-      error: "Failed to create post",
-    };
-  }
 
-  updateTag("blog");
-  return redirect("/blog");
+    updateTag("posts");
+    redirect("/posts");
+  } catch (error) {
+    throw new Error(
+      error instanceof Error ? error.message : "Failed to create post"
+    );
+  }
 }
