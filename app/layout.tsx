@@ -29,7 +29,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <main className="min-w-[320px] dark:bg-black">
+          <main className="min-w-[320px] bg-white dark:bg-black">
             <ConvexClientProvider>{children}</ConvexClientProvider>
           </main>
           <Toaster closeButton />

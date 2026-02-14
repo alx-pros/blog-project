@@ -10,7 +10,10 @@
 
 import type * as auth from "../auth.js";
 import type * as comment from "../comment.js";
+import type * as emailTemplates from "../emailTemplates.js";
+import type * as emails from "../emails.js";
 import type * as http from "../http.js";
+import type * as newsletter from "../newsletter.js";
 import type * as passwordReset from "../passwordReset.js";
 import type * as posts from "../posts.js";
 import type * as presence from "../presence.js";
@@ -25,7 +28,10 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   comment: typeof comment;
+  emailTemplates: typeof emailTemplates;
+  emails: typeof emails;
   http: typeof http;
+  newsletter: typeof newsletter;
   passwordReset: typeof passwordReset;
   posts: typeof posts;
   presence: typeof presence;

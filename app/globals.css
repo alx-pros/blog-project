@@ -144,7 +144,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply text-foreground font-sans;
+    @apply text-foreground bg-white dark:bg-black font-sans;
   }
 }
 
@@ -179,4 +179,20 @@
   .text-paragraph {
     @apply text-[#666666] dark:text-[#A0A0A0];
   }
+}
+
+/* Shiki Dual Theme Handling for Code Block in MDX*/
+
+/* 1. When in dark mode, use the dark variable */
+html.dark .shiki,
+html.dark .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: transparent !important;
+}
+
+/* 2. When in light mode (default), use the light variable */
+html:not(.dark) .shiki,
+html:not(.dark) .shiki span {
+  color: var(--shiki-light) !important;
+  background-color: transparent !important;
 }

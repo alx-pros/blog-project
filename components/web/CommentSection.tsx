@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, MessageSquare, Edit2, Trash2 } from "lucide-react";
+import { Loader2, MessageSquare, Edit2, Trash2, MessageCircle, MessagesSquare } from "lucide-react";
 import { Card, CardContent, CardHeader } from "../ui/card";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -102,9 +102,9 @@ export function CommentSection(props: {
   const isAdmin = currentUser?._id === process.env.NEXT_PUBLIC_ADMIN_ID;
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center gap-2 border-b">
-        <MessageSquare className="size-5" />
+    <Card className="w-full">
+      <CardHeader className="flex flex-row items-center text-black dark:text-white gap-2">
+        <MessagesSquare className="size-5" />
         <h2 className="text-xl font-bold">{data.length} Comments</h2>
       </CardHeader>
       <CardContent className="space-y-8">
@@ -135,9 +135,12 @@ export function CommentSection(props: {
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field>
-                  <FieldLabel>Start a conversation</FieldLabel>
+                  <FieldLabel>Start a conversation with the community</FieldLabel>
                   <Textarea
                     aria-invalid={fieldState.invalid}
+                    rows={3}
+                    wrap="soft"
+                    className="resize-none"
                     placeholder="Share your thoughts"
                     {...field}
                   />
@@ -148,7 +151,7 @@ export function CommentSection(props: {
               )}
             />
 
-            <Button disabled={isSubmitting}>
+            <Button disabled={isSubmitting} className="cursor-pointer">
               {isSubmitting ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />

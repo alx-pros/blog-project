@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
-import { ConvexError } from "convex/values";
+import { v, ConvexError } from "convex/values";
+import { buildPasswordResetEmail } from "./emailTemplates";
 
 // Generate a random 6-digit OTP
 function generateOTP(): string {
@@ -37,9 +37,13 @@ export const requestPasswordReset = mutation({
       attempts: 0,
     });
 
-    // In a real app, send email here with OTP
-    // For now, we're just storing it
-    console.log(`Password reset OTP for ${email}: ${otp}`);
+    // Build and "send" the password reset email using our template.
+    const { subject, body } = buildPasswordResetEmail({ email, otp });
+    console.log("[Email][PasswordReset][OTP]", {
+      to: email,
+      subject,
+      body,
+    });
 
     return { success: true };
   },

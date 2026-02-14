@@ -27,7 +27,7 @@ export default function BlogFilters() {
           }
           className={`px-4 py-2 rounded-full text-sm cursor-pointer ${
             activeFilters.includes(filter.key)
-              ? "bg-primary text-white dark:text-black"
+              ? "bg-[#FFEEE8] dark:bg-[#1C0600] text-primary"
               : "bg-[#EDEDED] dark:bg-[#202020]"
           }`}
         >

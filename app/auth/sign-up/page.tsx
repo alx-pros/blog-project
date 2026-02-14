@@ -2,7 +2,6 @@
 
 import { signUpSchema } from "@/app/schemas/auth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Field,
   FieldDescription,
@@ -21,10 +20,13 @@ import { useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 export default function SignUpPage() {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const sendWelcomeEmail = useMutation(api.emails.sendWelcomeEmail);
   const form = useForm({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -41,7 +43,13 @@ export default function SignUpPage() {
         name: data.name,
         password: data.password,
         fetchOptions: {
-          onSuccess: () => {
+          onSuccess: async () => {
+            // Fire-and-forget welcome email; errors are non-blocking.
+            try {
+              await sendWelcomeEmail({ email: data.email, name: data.name });
+            } catch {
+              // ignore
+            }
             toast.success("Account created successfully");
             router.push("/");
           },
@@ -55,12 +63,16 @@ export default function SignUpPage() {
   return (
     <div className="relative flex flex-col w-full h-full items-center justify-center gap-8">
       {/* Back button */}
-      <Link href="/" className="relative flex w-full items-start sm:absolute left-0 sm:left-6 top-0 lg:top-6 z-20">
-        <Button variant="secondary" size="sm" className="cursor-pointer">
+      <Button
+        variant="outline"
+        size="sm"
+        className="relative flex px-2 py-1 items-start sm:absolute left-0 top-0 z-20 cursor-pointer"
+      >
+        <Link href="/" className="flex items-center justify-center gap-3">
           <ArrowLeft className="h-4 w-4" />
           Home
-        </Button>
-      </Link>
+        </Link>
+      </Button>
 
       <form className="flex flex-col w-full max-w-md gap-6" onSubmit={form.handleSubmit(onSubmit)}>
         <FieldGroup>

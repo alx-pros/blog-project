@@ -12,6 +12,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           src="/side-background.jpg"
           alt="side background"
           fill
+          sizes="50vw"
           priority
           className="object-cover pointer-events-none"
         />

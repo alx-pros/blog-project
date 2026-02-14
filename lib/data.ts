@@ -1,4 +1,4 @@
-import { BookText, HomeIcon, LibraryBig, LogIn, User, UserPlus } from "lucide-react";
+import { BookText, BookUser, HomeIcon, LibraryBig, LogIn, User, UserPlus } from "lucide-react";
 
 export const NavbarDataBlog = [
   { href: "/", icon: HomeIcon, label: "Home" },
@@ -8,7 +8,7 @@ export const NavbarDataBlog = [
 // If the user is authenticated
 
 export const NavbarDataUser = [
-  { href: "/my-posts", icon: BookText, label: "My Posts" },
+  { href: "/my-posts", icon: BookUser, label: "My Posts" },
   { href: "/profile", icon: User, label: "Profile" },
 ];
 

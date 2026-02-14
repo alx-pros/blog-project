@@ -396,7 +396,7 @@ function VerticalTooltip({ items, hoveredIndex, prevHoveredIndex, ySpring, posit
       // Added initial={{ opacity: 0 }} to prevent flash on mount
       initial={{ opacity: 0 }}
       className={cn(
-        "pointer-events-none absolute overflow-hidden rounded-xl bg-[#FFBBA2] dark:bg-[#742C0A] text-primary shadow-lg z-50",
+        "pointer-events-none absolute overflow-hidden rounded-xl bg-[#FFEEE8] dark:bg-[#1C0600] text-primary shadow-lg z-50",
         position === "left" ? "left-full ml-3" : "right-full mr-3"
       )}
       style={{ top: ySpring, y: "-50%" }}
@@ -474,7 +474,7 @@ function HorizontalTooltip({ items, hoveredIndex, prevHoveredIndex, xSpring, pos
         <motion.div
           initial={{ opacity: 0, width: 0 }} // Start invisible/collapsed
           className={cn(
-            "pointer-events-none absolute left-0 overflow-hidden rounded-xl dark:bg-[#742C0A] bg-[#FFBBA2] text-primary shadow-lg z-50",
+            "pointer-events-none absolute left-0 overflow-hidden rounded-xl bg-[#FFEEE8] dark:bg-[#1C0600] text-primary z-50",
             position === "bottom" ? "bottom-full mb-3" : "top-full mt-3"
           )}
           style={{
@@ -529,7 +529,7 @@ function DockIconWrapper({
     <div
       className={cn(
         "size-10 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer",
-        "text-paragraph hover:text-primary! hover:bg-[#F4F4F5] dark:hover:bg-[#1E1E1E]",
+        "text-paragraph hover:text-primary! hover:bg-[#FFEEE8] dark:hover:bg-[#1C0600]",
         className
       )}
     >
@@ -578,6 +578,7 @@ function DockSearchContent({
   isDebouncing,
   setDebouncing,
 }: DockSearchContentProps) {
+  const { isAuthenticated } = useConvexAuth();
   const posts = useQuery(api.posts.getPublishedPosts);
   const [inputMode, setInputMode] = useState<"mouse" | "keyboard">("mouse");
 
@@ -586,7 +587,8 @@ function DockSearchContent({
     const lower = term.toLowerCase();
     return posts.filter(
       (post: any) =>
-        post.title.toLowerCase().includes(lower) || post.body.toLowerCase().includes(lower)
+        post.title.toLowerCase().includes(lower) ||
+        (post.subtitle ?? post.body).toLowerCase().includes(lower)
     );
   }, [term, posts]);
 
@@ -657,6 +659,16 @@ function DockSearchContent({
             <BookText className="size-12 opacity-20" />
             <span className="text-sm font-medium">Type to search blog posts</span>
           </div>
+        ) : !isAuthenticated && (!results || results.length === 0) ? (
+          <div className="flex flex-col items-center justify-center h-full text-paragraph gap-2 select-none px-6 text-center">
+            <BookText className="size-12 opacity-20" />
+            <span className="text-sm font-medium">
+              Search is available for signed-in readers.
+            </span>
+            <span className="text-xs text-muted-foreground">
+              Create a free account to search across all posts.
+            </span>
+          </div>
         ) : results && results.length === 0 ? (
           <div className="flex items-center justify-center h-full text-paragraph text-sm">
             No results found for "{term}"
@@ -685,7 +697,9 @@ function DockSearchContent({
                   <BookText className="size-5 mt-0.5 shrink-0 transition-colors" />
                   <div>
                     <h4 className="text-sm font-medium transition-colors">{post.title}</h4>
-                    <p className="text-xs text-paragraph line-clamp-1 mt-0.5">{post.body}</p>
+                    <p className="text-xs text-paragraph line-clamp-1 mt-0.5">
+                      {post.subtitle ?? post.body}
+                    </p>
                   </div>
                 </Link>
               ))}

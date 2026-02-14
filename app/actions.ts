@@ -17,16 +17,16 @@ export async function createBlogAction(values: z.infer<typeof postSchema>) {
     }
 
     const token = await getToken();
-    
+
+    if (!token) {
+      throw new Error("Not authenticated - no token found");
+    }
+
     let storageId = undefined;
-    
+
     // Upload image only if provided
     if (parsed.data.image) {
-      const imageUrl = await fetchMutation(
-        api.posts.generateImageUploadUrl,
-        {},
-        { token }
-      );
+      const imageUrl = await fetchMutation(api.posts.generateImageUploadUrl, {}, { token });
 
       const uploadResult = await fetch(imageUrl, {
         method: "POST",
@@ -44,10 +44,11 @@ export async function createBlogAction(values: z.infer<typeof postSchema>) {
       storageId = result.storageId;
     }
 
-    await fetchMutation(
+    const response = await fetchMutation(
       api.posts.createPost,
       {
         body: parsed.data.content,
+        subtitle: parsed.data.subtitle,
         title: parsed.data.title,
         contentHtml: parsed.data.contentHtml,
         topic: parsed.data.topic,
@@ -56,11 +57,11 @@ export async function createBlogAction(values: z.infer<typeof postSchema>) {
       { token }
     );
 
-    updateTag("posts");
-    redirect("/posts");
+    console.log("Post created successfully:", response);
+    updateTag("blog");
   } catch (error) {
-    throw new Error(
-      error instanceof Error ? error.message : "Failed to create post"
-    );
+    console.error("Error creating post:", error);
+    throw new Error(error instanceof Error ? error.message : "Failed to create post");
   }
+  redirect("/posts");
 }

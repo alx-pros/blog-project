@@ -2,7 +2,6 @@
 
 import { loginSchema } from "@/app/schemas/auth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Field,
   FieldDescription,
@@ -21,50 +20,61 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { useConvex } from "convex/react";
 
 export default function LoginPage() {
   const [isPending, startTransition] = useTransition();
-
   const router = useRouter();
+  const convex = useConvex();
+  
   const form = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
-
       password: "",
     },
   });
 
   function onSubmit(data: z.infer<typeof loginSchema>) {
     startTransition(async () => {
+      console.log("[Login] Attempting login with:", data.email);
+      
       await authClient.signIn.email({
         email: data.email,
         password: data.password,
         fetchOptions: {
-          onSuccess: () => {
+          onSuccess: async () => {
+            console.log("[Login] Success - refreshing Convex auth");
             toast.success("Logged in successfully");
-            router.push("/");
+            
+            // Force Convex to re-fetch auth state
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Refresh the page to ensure auth state is synced
+            window.location.href = "/";
           },
           onError: (error) => {
+            console.error("[Login] Error:", error);
             toast.error(error.error.message);
           },
         },
       });
     });
   }
+  
   return (
     <div className="relative flex flex-col w-full h-full items-center justify-center gap-8">
       {/* Back button */}
-      <Link
-        href="/"
-        className="relative flex w-full items-start sm:absolute left-0 sm:left-6 top-0 lg:top-6 z-20"
+      <Button
+        variant="outline"
+        size="sm"
+        className="relative flex px-2 py-1 items-start sm:absolute left-0 top-0 z-20 cursor-pointer"
       >
-        <Button variant="secondary" size="sm" className="cursor-pointer">
+        <Link href="/" className="flex items-center justify-center gap-3">
           <ArrowLeft className="h-4 w-4" />
           Home
-        </Button>
-      </Link>
+        </Link>
+      </Button>
       <form className="flex flex-col w-full max-w-md gap-6" onSubmit={form.handleSubmit(onSubmit)}>
         <FieldGroup>
           <div className="flex flex-col items-center gap-1 text-center">

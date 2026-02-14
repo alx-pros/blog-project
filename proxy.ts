@@ -1,19 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getSessionCookie } from "better-auth/cookies";
+import { NextResponse, type NextRequest } from "next/server";
 
 export async function proxy(request: NextRequest) {
-  const sessionCookie = getSessionCookie(request);
-
-  // THIS IS NOT SECURE!
-  // This is the recommended approach to optimistically redirect users
-  // We recommend handling auth checks in each page/route
-  if (!sessionCookie) {
-    return NextResponse.redirect(new URL("/auth/login", request.url));
-  }
-
+  // For Convex Better Auth, the token is managed by the Convex client
+  // We can't easily check it server-side in middleware
+  // So just let protected routes through and handle auth in the page/component
+  
+  // If you really need middleware protection, you'd need to verify the JWT
+  // But it's simpler to handle auth in your components with useConvexAuth()
+  
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/posts", "/create"], // Specify the routes the proxy applies to
+  matcher: ["/create"], // Keep /posts public for now
 };

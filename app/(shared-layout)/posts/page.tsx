@@ -64,7 +64,9 @@ export async function LoadBlogList() {
             >
               <div className="flex flex-col">
                 <h1 className="text-xl font-bold">{post.title}</h1>
-                <p className="text-paragraph line-clamp-2">{post.body}</p>
+                <p className="text-paragraph line-clamp-2">
+                  {post.subtitle ?? post.body}
+                </p>
               </div>
             </div>
             <p className="text-sm text-paragraph whitespace-nowrap">{post._creationTime}</p>

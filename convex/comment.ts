@@ -47,8 +47,7 @@ export const createComment = mutation({
     postId: v.id("posts"),
   },
   handler: async (ctx, args) => {
-    const user = await authComponent.safeGetAuthUser(ctx);
-
+    const user = await authComponent.getAuthUser(ctx);
     if (!user) {
       throw new ConvexError("Not authenticated");
     }
@@ -65,7 +64,7 @@ export const createComment = mutation({
 
     if (rateLimit) {
       const timeSinceLastComment = now - (rateLimit.lastCommentTime || 0);
-      const dailyCount = timeSinceLastComment > COMMENT_COOLDOWN_MS ? 0 : rateLimit.dailyCommentCount || 0;
+      const dailyCount = timeSinceLastComment > COMMENT_COOLDOWN_MS ? 0 : rateLimit.hourlyCommentCount || 0;
 
       if (dailyCount >= COMMENT_RATE_LIMIT) {
         throw new ConvexError(
@@ -75,13 +74,13 @@ export const createComment = mutation({
 
       await ctx.db.patch(rateLimit._id, {
         lastCommentTime: now,
-        dailyCommentCount: dailyCount + 1,
+        hourlyCommentCount: dailyCount + 1,
       });
     } else {
       await ctx.db.insert("rateLimits", {
         userId: user._id,
         lastCommentTime: now,
-        dailyCommentCount: 1,
+        hourlyCommentCount: 1,
       });
     }
 
@@ -89,7 +88,7 @@ export const createComment = mutation({
       postId: args.postId,
       body: args.body,
       authorId: user._id,
-      authorName: user.name,
+      authorName: user.name || "",
       status: "visible",
     });
   },
@@ -101,8 +100,7 @@ export const updateComment = mutation({
     body: v.string(),
   },
   handler: async (ctx, args) => {
-    const user = await authComponent.safeGetAuthUser(ctx);
-
+    const user = await authComponent.getAuthUser(ctx);
     if (!user) {
       throw new ConvexError("Not authenticated");
     }
@@ -125,8 +123,7 @@ export const updateComment = mutation({
 export const deleteComment = mutation({
   args: { commentId: v.id("comments") },
   handler: async (ctx, args) => {
-    const user = await authComponent.safeGetAuthUser(ctx);
-
+    const user = await authComponent.getAuthUser(ctx);
     if (!user) {
       throw new ConvexError("Not authenticated");
     }
