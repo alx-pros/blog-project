@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Send } from "lucide-react";
 import { motion } from "framer-motion";
+import { Button } from "./button";
 
 const EMAIL_REGEX =
   /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -27,7 +28,7 @@ export function PlaceholdersAndVanishInput({
   const draw = useCallback(() => {
     if (!inputRef.current || !canvasRef.current) return;
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
 
     canvas.width = 800;
@@ -41,7 +42,7 @@ export function PlaceholdersAndVanishInput({
     ctx.fillStyle = "#FFF";
     ctx.fillText(value, 16, 40);
 
-    const imageData = ctx.getImageData(0, 0, 800, 800,);
+    const imageData = ctx.getImageData(0, 0, 800, 800);
     const pixelData = imageData.data;
     const particles: any[] = [];
 
@@ -93,8 +94,7 @@ export function PlaceholdersAndVanishInput({
     frame(start);
   };
 
-  /* -------------------- SUBMIT LOGIC -------------------- */
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     // Let the browser validate first
     if (!inputRef.current?.checkValidity()) return;
 
@@ -141,14 +141,14 @@ export function PlaceholdersAndVanishInput({
         )}
       />
 
-      <button
+      <Button
         type="submit"
         className={cn(
           "absolute right-2 top-1/2 -translate-y-1/2 z-20 cursor-pointer",
-          "flex items-center gap-2 rounded-full px-3 sm:px-4 py-1.5 text-sm font-medium transition focus:outline-2 focus:outline-black dark:focus:outline-white",
+          "flex items-center gap-2 rounded-full px-3 sm:px-4 py-1.5 text-sm font-medium transition",
           submitted
-            ? "cursor-text text-white"
-            : "bg-[#FF5800] text-white hover:bg-[#FF5800]/90",
+            ? "bg-transparent! border-transparent! cursor-text"
+            : "default",
         )}
       >
         {submitted ? (
@@ -159,7 +159,7 @@ export function PlaceholdersAndVanishInput({
             <Send className="w-4 h-4" />
           </>
         )}
-      </button>
+      </Button>
     </form>
   );
 }

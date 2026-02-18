@@ -2,85 +2,90 @@
 
 import { NodeViewWrapper, NodeViewContent } from "@tiptap/react";
 import { Terminal, Copy, Check } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 
 const managers = ["npm", "pnpm", "yarn"];
 
-interface managerMap {
-  run: string;
-  exec: string;
-}
-
-const managerMap: Record<string, managerMap> = {
-  npm: { run: "npm", exec: "npx" },
-  pnpm: { run: "pnpm", exec: "pnpm dlx" },
-  yarn: { run: "yarn", exec: "yarn dlx" },
-};
-
 export default function TerminalCodeBlockComponent({
   node,
-  updateAttributes,
   editor,
   getPos,
 }: any) {
   const [copied, setCopied] = useState(false);
 
-  const text = node.textContent || "";
+  const switchManager = (targetManager: string) => {
+    if (targetManager === node.attrs.packageManager) return;
 
-  const PREFIX_REGEX = /^(npm|pnpm|yarn|npx|cd|git|rm|mv|touch|mkdir|ls|echo|cat)/;
+    editor.commands.command(({ tr, state, dispatch }: any) => {
+      const pos = getPos();
+      if (typeof pos !== "number") return false;
 
-  // Replace prefix when switching
-  const switchManager = (manager: string) => {
-    const pos = getPos();
-    if (typeof pos !== "number") return;
+      const currentNode = state.doc.nodeAt(pos);
+      if (!currentNode) return false;
 
-    const currentText = node.textContent || "";
-    const currentManager = node.attrs.packageManager;
+      const currentManager = currentNode.attrs.packageManager;
+      const currentText = currentNode.textContent;
+      const targetContent = currentNode.attrs[`${targetManager}Content`] || "";
 
-    const currentMap = managerMap[currentManager];
-    const newMap = managerMap[manager];
+      //  1. Capture cursor position RELATIVE to node
+      const { from } = state.selection;
+      const relativeOffset = from - (pos + 1);
 
-    let updated = currentText;
+      if (dispatch) {
+        //  2. Save current text into its slot
+        tr.setNodeMarkup(pos, undefined, {
+          ...currentNode.attrs,
+          [`${currentManager}Content`]: currentText,
+          packageManager: targetManager,
+        });
 
-    if (currentMap && newMap) {
-      updated = updated
-        // Replace exec command first (longer)
-        .replace(new RegExp(`^${currentMap.exec.replace(" ", "\\s+")}`, "gm"), newMap.exec)
-        // Then replace run command
-        .replace(new RegExp(`^${currentMap.run}`, "gm"), newMap.run);
-    }
+        const contentStart = pos + 1;
+        const contentEnd = pos + currentNode.nodeSize - 1;
 
-    updateAttributes({ packageManager: manager });
+        //  3. Replace content
+        if (targetContent.length > 0) {
+          tr.replaceWith(contentStart, contentEnd, state.schema.text(targetContent));
+        } else {
+          tr.delete(contentStart, contentEnd);
+        }
 
-    editor
-      .chain()
-      .focus()
-      .command(({ tr }: any) => {
-        const pos = getPos();
-        if (typeof pos !== "number") return false;
+        //  4. Restore caret (clamp to new content length)
+        const newOffset = Math.min(relativeOffset, targetContent.length);
+        const newPos = contentStart + newOffset;
 
-        tr.insertText(updated, pos + 1, pos + node.nodeSize - 1);
-        return true;
-      })
-      .run();
+        tr.setSelection(state.selection.constructor.near(tr.doc.resolve(newPos)));
+      }
+
+      return true;
+    });
   };
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(text);
+    await navigator.clipboard.writeText(node.textContent);
     setCopied(true);
     setTimeout(() => setCopied(false), 1200);
   };
 
-  // Styled visual rendering
+  // 2. VISUAL RENDERING
+  // We use CSS Grid stacking to ensure the Visual Layer and Editor Layer match perfectly
   const renderStyled = () => {
+    const text = node.textContent || "";
+    // If empty, render a placeholder so height doesn't collapse
+    if (!text)
+      return (
+        <div className="pointer-events-none opacity-0">
+          <br />
+        </div>
+      );
+
     return text.split("\n").map((line: string, i: number) => {
-      const match = line.match(PREFIX_REGEX);
+      const match = line.match(/^(npm|pnpm|yarn|npx|cd|git|rm|mv|touch|mkdir|ls|echo|cat)\b/);
 
       if (!match) {
         return (
-          <div key={i} className="text-green-500">
-            {line}
+          <div key={i} className="text-[#397C3B] dark:text-[#58C760]">
+            {line || <br />}
           </div>
         );
       }
@@ -97,31 +102,28 @@ export default function TerminalCodeBlockComponent({
     });
   };
 
+  // Shared typography for exact alignment
+  const commonFont = "font-mono text-[13px] leading-[20px]";
+
   return (
     <NodeViewWrapper className="my-8 rounded-lg overflow-hidden border border-[#EAEAEA] dark:border-[#1E1E1E]">
       {/* HEADER */}
       <div
         contentEditable={false}
-        className="flex items-center justify-between px-4 py-2 border-b border-[#EAEAEA] dark:border-[#1E1E1E] bg-[#FAFAFA] dark:bg-black"
+        className="flex items-center justify-between px-3.5 sm:px-4 py-2 border-b border-[#EAEAEA] dark:border-[#1E1E1E] bg-[#FAFAFA] dark:bg-black select-none"
       >
-        <div className="flex items-center gap-3">
-          <Terminal className="size-4" />
-
-          {/* Manager Buttons */}
-          <div className="flex gap-2 text-xs font-mono">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Terminal className="size-4 text-neutral-500" />
+          <div className="flex gap-1 text-xs font-mono">
             {managers.map((manager) => (
               <button
                 key={manager}
+                type="button"
                 onClick={(e) => {
                   e.preventDefault();
-                  e.stopPropagation();
                   switchManager(manager);
                 }}
-                className={`px-2 py-0.5 rounded transition cursor-pointer ${
-                  node.attrs.packageManager === manager
-                    ? "bg-black text-white dark:bg-white dark:text-black"
-                    : "dark:bg-[#181818] bg-[#E8E8E8]"
-                }`}
+                className={`px-1 sm:px-2 py-0.5 rounded transition cursor-pointer ${node.attrs.packageManager === manager ? "bg-black text-white dark:bg-white dark:text-black" : "dark:bg-[#181818] bg-[#E8E8E8]"}`}
               >
                 {manager}
               </button>
@@ -162,15 +164,27 @@ export default function TerminalCodeBlockComponent({
         </button>
       </div>
 
-      {/* BODY */}
-      <div className="relative bg-white dark:bg-black px-4 py-5 font-mono text-[13px] leading-[20px]">
-        {/* Visual layer */}
-        <div className="pointer-events-none whitespace-pre h-4">{renderStyled()}</div>
+      {/* BODY - GRID STACK */}
+      {/* The grid ensures both children overlap exactly. `min-h` prevents collapse. */}
+      <div
+        className={`relative bg-white dark:bg-[#0A0A0A] w-full grid grid-cols-1 grid-rows-1 p-4 ${commonFont}`}
+      >
+        {/* Layer 1: Visuals (Bottom) */}
+        <div className="col-start-1 row-start-1 pointer-events-none whitespace-pre overflow-x-auto">
+          {renderStyled()}
+        </div>
 
-        {/* Editable layer */}
+        {/* Layer 2: Editor (Top) */}
         <NodeViewContent
           as="pre"
-          className="absolute inset-0 px-4 py-5 whitespace-pre text-transparent caret-black dark:caret-white outline-none"
+          className={`
+            col-start-1 row-start-1 
+            whitespace-pre overflow-x-auto outline-none 
+            text-transparent caret-black dark:caret-white
+            /* RESET TIPTAP MARGINS */
+            [&_pre]:!m-0 [&_pre]:!p-0 [&_pre]:!font-inherit [&_pre]:!bg-transparent
+            [&_div]:!m-0 [&_div]:!p-0
+          `}
         />
       </div>
     </NodeViewWrapper>

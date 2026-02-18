@@ -173,7 +173,7 @@ export default function ProfilePage() {
               variant="destructive"
               onClick={handleDeleteAccount}
               disabled={isDeleting || !password.trim()}
-              className="w-full cursor-pointer hover:bg-[#AE2A2E] bg-[#DA2E34] dark:hover:bg-[#FF6166] dark:bg-[#D93036]"
+              className="w-full"
             >
               {isDeleting ? (
                 <>

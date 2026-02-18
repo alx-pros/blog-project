@@ -2,21 +2,13 @@
 
 import { NodeViewWrapper, NodeViewContent } from "@tiptap/react";
 import { Copy, Check } from "lucide-react";
-import {
-  SiTypescript,
-  SiJavascript,
-  SiNextdotjs,
-  SiReact,
-} from "react-icons/si";
+import { SiTypescript, SiJavascript, SiNextdotjs, SiReact } from "react-icons/si";
 import { useState, useEffect } from "react";
 import { highlighterPromise } from "@/lib/extension/shiki";
 import { motion } from "framer-motion";
 import { BiLogoTypescript, BiLogoJavascript } from "react-icons/bi";
 
-export default function FileCodeBlockComponent({
-  node,
-  updateAttributes,
-}: any) {
+export default function FileCodeBlockComponent({ node, updateAttributes }: any) {
   const [html, setHtml] = useState("");
   const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -55,10 +47,16 @@ export default function FileCodeBlockComponent({
 
   // Handle toggling the line highlight
   const toggleHighlight = (index: number) => {
-    if (node.attrs.highlightedLine === index) {
-      updateAttributes({ highlightedLine: null });
+    const current: number[] = node.attrs.highlightedLines || [];
+
+    if (current.includes(index)) {
+      updateAttributes({
+        highlightedLines: current.filter((i) => i !== index),
+      });
     } else {
-      updateAttributes({ highlightedLine: index });
+      updateAttributes({
+        highlightedLines: [...current, index],
+      });
     }
   };
 
@@ -97,21 +95,19 @@ export default function FileCodeBlockComponent({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              const nextLang =
-                languages[
-                  (languages.indexOf(node.attrs.language) + 1) %
-                    languages.length
-                ];
-              updateAttributes({ language: nextLang });
+              const nextIcon =
+                languages[(languages.indexOf(node.attrs.fileIcon) + 1) % languages.length];
+
+              updateAttributes({ fileIcon: nextIcon });
             }}
             className="flex items-center justify-center cursor-pointer text-paragraph"
           >
-            {getFileIcon(node.attrs.language)}
+            {getFileIcon(node.attrs.fileIcon)}
           </button>
           <input
             value={node.attrs.filename}
             onChange={(e) => updateAttributes({ filename: e.target.value })}
-            className="bg-transparent text-[14px] outline-none text-paragraph focus:text-black dark:focus:text-white font-sans"
+            className="bg-transparent text-[14px] w-30 sm:w-60 outline-none text-paragraph focus:text-black dark:focus:text-white font-sans truncate"
           />
         </div>
         <button
@@ -151,12 +147,9 @@ export default function FileCodeBlockComponent({
       {/* BODY */}
       <div className="relative flex w-full overflow-x-auto transition-colors duration-200 bg-white dark:bg-[#0A0A0A]">
         {/* LINE NUMBERS COLUMN */}
-        <div
-          contentEditable={false}
-          className={`flex flex-col pt-5 pb-5 shrink-0 ${commonFont}`}
-        >
+        <div contentEditable={false} className={`flex flex-col pt-5 pb-5 shrink-0 ${commonFont}`}>
           {lines.map((_: string, i: number) => {
-            const isHighlighted = i === node.attrs.highlightedLine;
+            const isHighlighted = node.attrs.highlightedLines?.includes(i);
             return (
               <button
                 key={i}
@@ -184,24 +177,20 @@ export default function FileCodeBlockComponent({
           {/* This layer sits behind text and renders the color strip for the selected line */}
           <div
             className={`
-            col-start-1 row-start-1 pt-5 pb-5 pr-4 pl-2 z-0
+            col-start-1 row-start-1 pt-5 pb-5 pr-4 z-0
             pointer-events-none min-w-max select-none
             flex flex-col
             ${commonFont}
           `}
           >
             {lines.map((_: string, i: number) => {
-              const isHighlighted = i === node.attrs.highlightedLine;
+              const isHighlighted = node.attrs.highlightedLines?.includes(i);
               return (
                 <div
                   key={i}
                   className={`
                     w-full min-h-[20px] transition-colors duration-100
-                    ${
-                      isHighlighted
-                        ? "bg-[#EAF5FF] dark:bg-[#0F233D]"
-                        : "bg-transparent"
-                    }
+                    ${isHighlighted ? "bg-[#EAF5FF] dark:bg-[#0F233D]" : "bg-transparent"}
                   `}
                 />
               );

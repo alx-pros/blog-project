@@ -2,13 +2,13 @@
 
 import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useConvexAuth, useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { postSchema } from "@/app/schemas/blog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,7 +31,7 @@ import Footer from "@/components/web/Footer";
 const RichTextEditor = dynamic(
   () => import("@/components/ui/rich-text-editor").then((mod) => ({ default: mod.RichTextEditor })),
   {
-    loading: () => <Skeleton className="h-80 w-full" />,
+    loading: () => <Skeleton className="h-[500px] w-full" />,
     ssr: false,
   }
 );
@@ -41,12 +41,11 @@ export default function EditPostRoute() {
   const params = useParams<{ postId: string }>();
   const { isAuthenticated, isLoading } = useConvexAuth();
   const [isPending, setIsPending] = useState(false);
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push("/auth/login");
-    }
-  }, [isAuthenticated, isLoading, router]);
+  
+  if (!isLoading && !isAuthenticated) {
+    router.replace("/auth/login");
+    return null;
+  }
 
   const postId = params.postId as Id<"posts"> | undefined;
   const post = useQuery(api.posts.getPostById, postId ? { postId } : "skip");
@@ -86,7 +85,7 @@ export default function EditPostRoute() {
   if (!postId || isLoading || post === undefined) {
     return (
       <div className="py-12">
-        <Skeleton className="h-96 w-full" />
+        <Skeleton className="h-[700px] w-full" />
       </div>
     );
   }
@@ -96,7 +95,7 @@ export default function EditPostRoute() {
       <div className="py-16">
         <div className="mx-auto max-w-xl text-center space-y-4">
           <h1 className="text-3xl font-bold tracking-tight">Post not found</h1>
-          <p className="text-muted-foreground">The post you're looking for doesn't exist.</p>
+          <p className="text-paragraph">The post you're looking for doesn't exist.</p>
           <Link href="/my-posts" className={buttonVariants()}>
             Back to my posts
           </Link>
@@ -146,7 +145,7 @@ export default function EditPostRoute() {
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field>
-                    <FieldLabel className="text-black dark:text-white">Title</FieldLabel>
+                    <FieldLabel>Title</FieldLabel>
                     <Input
                       aria-invalid={fieldState.invalid}
                       placeholder="What's the subject?"
@@ -163,7 +162,7 @@ export default function EditPostRoute() {
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field>
-                    <FieldLabel className="text-black dark:text-white">Subtitle</FieldLabel>
+                    <FieldLabel>Subtitle</FieldLabel>
                     <Input
                       aria-invalid={fieldState.invalid}
                       placeholder="What's your main idea?"
@@ -217,21 +216,17 @@ export default function EditPostRoute() {
               />
 
               <Button disabled={isPending} size="lg" className="w-full">
-                {isPending ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" />
-                    <span>Saving...</span>
-                  </>
-                ) : (
-                  <span>Save Changes</span>
-                )}
+                {isPending && <Loader2 className="size-4 animate-spin" />}
+                <span>Save Changes</span>
               </Button>
             </FieldGroup>
           </form>
         </CardContent>
       </Card>
 
-      <Footer />
+      <Suspense fallback={null}>
+        <Footer />
+      </Suspense>
     </div>
   );
 }

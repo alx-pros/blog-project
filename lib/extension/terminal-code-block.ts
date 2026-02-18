@@ -4,9 +4,8 @@ import TerminalCodeBlockComponent from "@/components/ui/TerminalCodeBlock";
 
 export const TerminalCodeBlock = Node.create({
   name: "terminalBlock",
-
   group: "block",
-  content: "text*",
+  content: "text*", 
   defining: true,
   code: true,
 
@@ -14,6 +13,16 @@ export const TerminalCodeBlock = Node.create({
     return {
       packageManager: {
         default: "npm",
+      },
+      // Hidden storage for the tabs
+      npmContent: {
+        default: "",
+      },
+      pnpmContent: {
+        default: "",
+      },
+      yarnContent: {
+        default: "",
       },
     };
   },
@@ -25,9 +34,7 @@ export const TerminalCodeBlock = Node.create({
   renderHTML({ HTMLAttributes }) {
     return [
       "div",
-      mergeAttributes(HTMLAttributes, {
-        "data-type": "terminal-block",
-      }),
+      mergeAttributes(HTMLAttributes, { "data-type": "terminal-block" }),
       0,
     ];
   },
@@ -36,11 +43,16 @@ export const TerminalCodeBlock = Node.create({
     return ReactNodeViewRenderer(TerminalCodeBlockComponent);
   },
 
-  // Handle Enter key to insert line breaks
   addKeyboardShortcuts() {
     return {
       Enter: ({ editor }) => {
-        return editor.commands.insertContent('\n');
+        const { state } = editor;
+        const { $from } = state.selection;
+        const node = $from.node($from.depth);
+        if (node.textContent.length === 0) {
+          return editor.commands.deleteNode("terminalBlock");
+        }
+        return false;
       },
     };
   },

@@ -150,7 +150,7 @@ export default function MyPostsPage() {
                     </Link>
 
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       size="sm"
                       onClick={() => handleEditPost(post._id)}
                       className="text-black dark:text-white bg-white dark:bg-black cursor-pointer"
@@ -164,7 +164,7 @@ export default function MyPostsPage() {
                       size="sm"
                       onClick={() => handleDeletePost(post._id)}
                       disabled={isDeleting === post._id}
-                      className="h-7 cursor-pointer hover:bg-[#AE2A2E] bg-[#DA2E34] dark:hover:bg-[#FF6166] dark:bg-[#D93036]"
+                      className="h-7"
                     >
                       {isDeleting === post._id ? (
                         <Loader2 className="size-3 animate-spin" />

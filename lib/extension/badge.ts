@@ -1,21 +1,39 @@
-import { Mark, mergeAttributes, RawCommands } from "@tiptap/core";
+// lib/extension/badge.ts
+import { Mark, mergeAttributes } from "@tiptap/core";
+
+declare module "@tiptap/core" {
+  interface Commands<ReturnType> {
+    badge: {
+      toggleBadge: () => ReturnType;
+    };
+  }
+}
 
 export const Badge = Mark.create({
   name: "badge",
-  code: true,
-  inclusive: false,
+
+  addOptions() {
+    return {
+      HTMLAttributes: {},
+    };
+  },
 
   parseHTML() {
-    return [{ tag: "span[data-badge]" }];
+    return [
+      {
+        tag: "span",
+        getAttrs: (element) =>
+          (element as HTMLElement).hasAttribute("data-badge") ? {} : false,
+      },
+    ];
   },
 
   renderHTML({ HTMLAttributes }) {
     return [
       "span",
-      mergeAttributes(HTMLAttributes, {
+      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
         "data-badge": "",
-        class:
-          "px-2 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-700 dark:bg-black dark:text-blue-300",
+        class: "inline-flex items-center justify-center px-1 rounded-md text-[length:inherit] text-black dark:text-white font-mono tracking-tight bg-[#EAEAEA] dark:bg-[#0A0A0A] border border-[#EAEAEA] dark:border-[#1E1E1E]",
       }),
       0,
     ];
@@ -23,13 +41,11 @@ export const Badge = Mark.create({
 
   addCommands() {
     return {
-      toggleBadge: {
-        run: () => {
-          return ({ commands }: any) => {
-            return commands.toggleMark(this.name);
-          };
+      toggleBadge:
+        () =>
+        ({ commands }) => {
+          return commands.toggleMark(this.name);
         },
-      },
-    } as Partial<RawCommands>;
+    };
   },
 });

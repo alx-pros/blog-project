@@ -58,6 +58,7 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --table-border: #EAEAEA;
 }
 
 :root {
@@ -132,6 +133,7 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.55 0.18 41);
+  --table-border: #1E1E1E:
 
   ::selection {
     background-color: #FF5800;

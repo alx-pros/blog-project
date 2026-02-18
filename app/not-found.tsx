@@ -20,7 +20,7 @@ export default function NotFound() {
         </p>
 
         <div className="flex items-center justify-center gap-4">
-          <Link href="/" className={buttonVariants({ size: "lg" })}>
+          <Link href="/" className={buttonVariants({ size: "lg", variant: "outline" })}>
             Back to home
           </Link>
         </div>

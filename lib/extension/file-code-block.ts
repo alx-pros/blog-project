@@ -23,7 +23,10 @@ export const FileCodeBlock = CodeBlockLowlight.extend({
       language: {
         default: "tsx",
       },
-      highlightedLine: {
+      fileIcon: {
+        default: "tsx",
+      },
+      highlightedLines: {
         default: [],
       },
     };
